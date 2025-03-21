@@ -3,7 +3,7 @@
 namespace HiEvents\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-// use Sentry\Laravel\Facade as Sentry;
+use Sentry\Laravel\Facade as Sentry;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Throwable;
 use Illuminate\Support\Facades\Log;
@@ -39,8 +39,12 @@ class Handler extends ExceptionHandler
     public function report(Throwable $e)
     {
         if ($this->shouldReport($e)) {
-            // Sentry::captureException($e);
-            Log::error($e->getMessage());
+            if (app()->bound('sentry') && $this->shouldReport($e)) {
+                Sentry::captureException($e);
+            }
+            else {
+                Log::error($e->getMessage());
+            }
         }
 
         parent::report($e);
